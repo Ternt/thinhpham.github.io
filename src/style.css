@@ -1,0 +1,72 @@
+:root {
+  --page-header-size: 50px;
+  --page-layout-size: 1rem;
+}
+
+.space-mono-regular {
+  font-family: "Space Mono", monospace;
+  font-weight: 400;
+  font-style: normal;
+}
+
+.space-mono-bold {
+  font-family: "Space Mono", monospace;
+  font-weight: 700;
+  font-style: normal;
+}
+
+.space-mono-regular-italic {
+  font-family: "Space Mono", monospace;
+  font-weight: 400;
+  font-style: italic;
+}
+
+.space-mono-bold-italic {
+  font-family: "Space Mono", monospace;
+  font-weight: 700;
+  font-style: italic;
+}
+
+* {
+  font-family: 'Space Grotesk', sans-serif;
+  text-decoration: none;
+  padding: 0;
+  margin: 0;
+  box-sizing: content-box;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+.page-header {
+  height: var(--page-header-size);
+}
+
+.page-main {
+  min-height: calc(100vh - var(--page-layout-size));
+  width: calc(100vw - var(--page-layout-size));
+}
+
+.content {
+  margin: auto;
+  max-width: 700px;
+}
+
+.project-title {
+  height: 1rem;
+}
+
+.project-card {
+  width: 400px;
+  height: 400px;
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+
+.project-card-thumbnail {
+  width: 100%;
+  height: calc(100% - 1rem);
+  border: solid black 2px;
+  box-sizing: border-box;
+}
