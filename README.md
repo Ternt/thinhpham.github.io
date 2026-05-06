@@ -1,6 +1,6 @@
 - Assignment #2: [video](https://youtu.be/W8Km9ZFQL0Q), [repo](https://github.com/Ternt/Ternt.github.io/tree/main/src/proj2), [explanation](https://github.com/Ternt/Ternt.github.io/tree/main/src/proj2/README.md)
 - Assignment #3: [project](https://ternt.github.io/proj3/index.html), [repo](https://github.com/Ternt/Ternt.github.io/tree/main/src/proj3), [explanation](https://github.com/Ternt/Ternt.github.io/tree/main/src/proj3/README.md)
 - Assignment #4: [project](https://ternt.github.io/proj4/index.html), [repo](https://github.com/Ternt/Ternt.github.io/tree/main/src/proj4), [explanation](https://github.com/Ternt/Ternt.github.io/tree/main/src/proj4/README.md)
-- Assignment #5: project, [repo](https://github.com/Ternt/Ternt.github.io/tree/main/src/proj5), [explanation](https://github.com/Ternt/Ternt.github.io/tree/main/src/proj5/README.md)
-- Assignment #6: project, [repo](https://github.com/Ternt/Ternt.github.io/tree/main/src/proj6), [explanation](https://github.com/Ternt/Ternt.github.io/tree/main/src/proj6/README.md)
+- Assignment #5: [project](https://ternt.github.io/proj5/index.html), [repo](https://github.com/Ternt/Ternt.github.io/tree/main/src/proj5), [explanation](https://github.com/Ternt/Ternt.github.io/tree/main/src/proj5/README.md)
+- Assignment #6: [project](https://ternt.github.io/proj6/index.html), [repo](https://github.com/Ternt/Ternt.github.io/tree/main/src/proj6), [explanation](https://github.com/Ternt/Ternt.github.io/tree/main/src/proj6/README.md)
 - Assignment Final: [project](https://ternt.github.io/projFinal/index.html), [repo](https://github.com/Ternt/Ternt.github.io/tree/main/src/projFinal), [explanation](https://github.com/Ternt/Ternt.github.io/tree/main/src/projFinal/README.md)
