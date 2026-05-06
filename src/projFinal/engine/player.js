@@ -16,7 +16,7 @@ export default class Player extends GameObject {
     this.velZ        = 0;
 
     this.rate        = 6.0;    
-    this.mult        = 6.0;  
+    this.mult        = 90;  
     this.grav        = 30.0;   
     this.jumpVel     = 9.4375; 
 
@@ -64,8 +64,8 @@ update(dt, physics) {
   if (this.keys['KeyS'] || this.keys['ArrowDown'])  dirZ += 1;
   if (this.keys['KeyA'] || this.keys['ArrowLeft'])  dirX -= 1;
   if (this.keys['KeyD'] || this.keys['ArrowRight']) dirX += 1;
-  if (grounded && this.keys['ShiftLeft']) { this.mult = 30; this.rate = 15.0; }
-  else if (!this.keys['ShiftLeft'])       { this.mult = 60; this.rate = 6.0;  }
+  if (grounded && this.keys['ShiftLeft']) { this.mult = 45; this.rate = 15.0; }
+  else if (!this.keys['ShiftLeft'])       { this.mult = 90; this.rate = 6.0;  }
 
   const norm = dirX * dirX + dirZ * dirZ;
   let accX = 0, accZ = 0;

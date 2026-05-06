@@ -45,10 +45,10 @@ export default class Physics {
 
     // Read dimensions from the game object if available, fall back to defaults
     const halfHeight = gameObject.capsuleHalfHeight ?? 0.9;
-    const radius     = gameObject.capsuleRadius     ?? 0.4;
+    const radius     = gameObject.capsuleRadius ?? 0.4;
 
     const colliderDesc = RAPIER.ColliderDesc.capsule(halfHeight, radius);
-    const collider     = this.world.createCollider(colliderDesc, body);
+    const collider = this.world.createCollider(colliderDesc, body);
 
     const handle = { body, controller, collider };
     this.bodies.set(gameObject, handle);
