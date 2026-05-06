@@ -10,5 +10,8 @@
   },
   "devDependencies": {
     "@rsbuild/core": "^2.0.0"
+  },
+  "dependencies": {
+    "fbx-parser": "^2.1.3"
   }
 }

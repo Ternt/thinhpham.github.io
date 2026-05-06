@@ -110,14 +110,17 @@ a:hover {
   pointer-events: auto;
 }
 
-.ui-toolbar {
-  display: flex;
-  flex-direction: row;
-}
-
 .ui-element {
   display: block;
   margin-bottom: 0.5rem;
+}
+
+.ui-text {
+  color: white;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
 }
 
 .ui-dropdown {
@@ -125,8 +128,8 @@ a:hover {
   height: fit-content;
   font-family: 'Space Mono', monospace;
   font-size: 0.875rem;
-  background: rgba(0, 0, 0, 0.6);
   color: white;
+  background: inherit;
   padding: 0.2rem 0.6rem;
   border: 0px solid rgba(0, 0, 0, 0);
   cursor: pointer;
@@ -153,3 +156,35 @@ a:hover {
   font-family: 'Space Mono', monospace;
 }
 
+.ui-slider {
+  display: flex;
+  flex-direction: row;
+  gap: 0.5rem;
+  color: white;
+  padding: 0.2rem 0.6rem;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.875rem;
+}
+
+.ui-slider-value {
+  margin-left: auto;
+}
+
+.ui-slider-inline-input {
+  width: 4rem;
+  margin-left: auto;
+}
+
+.ui-slider-popup-input {
+  position: fixed;
+  width: 5rem;
+  z-index: 1000;
+}
+
+.app-credit {
+  z-index: 3;
+  top: var(--page-header-size);
+  color: rgba(255, 0, 0, 1.0);
+  font-family: 'Space Mono', monospace;
+  background: rgba(255, 0, 0, 0.3);
+}

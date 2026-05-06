@@ -1,5 +1,4 @@
 import { default as gulls } from 'https://cbcdn.githack.com/charlieroberts/gulls/raw/branch/main/gulls.js'
-import { default as Video } from 'https://cbcdn.githack.com/charlieroberts/gulls/raw/branch/main/helpers/video.js'
 import UI from '../modules/ui.js';
 
 class App {
@@ -21,7 +20,7 @@ class App {
 }
 
 const app = new App();
-await app.init('Reaction Diffusion');
+await app.init('Particles');
 
 app.ui.parentPush({ id: 'tool-bar', classOverrides: 'ui-toolbar' });
 app.ui.parentPop();

@@ -57,12 +57,24 @@ export default class UI {
   }
 
   text({ text, id, classOverrides } = {}) {
-    this.textboxCount += 1;
+    this.textCount += 1;
     const p = document.createElement('p');
     p.id = id ?? `text-${this.textboxCount}`;
     p.className = classOverrides ?? 'ui-element ui-text';
     p.textContent = text;
     this.currentParent().appendChild(p);
+    return p; // add this
+  }
+
+  link({ text, href, id, classOverrides } = {}) {
+    this.textCount += 1;
+    const a = document.createElement('a');
+    a.id = id ?? `text-${this.textboxCount}`;
+    a.className = classOverrides ?? 'ui-element ui-link';
+    a.href = href;
+    a.textContent = text;
+    this.currentParent().appendChild(a);
+    return a; // add this
   }
 
   slider({ label, range, cb, id, classOverrides } = { 
