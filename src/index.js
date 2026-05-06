@@ -5,6 +5,7 @@ const projectLinks = [
   { name: 'Project 3',     url: '/proj3/index.html'     },
   { name: 'Project 4',     url: '/proj4/index.html'     },
   { name: 'Project 5',     url: '/proj5/index.html'     },
+  { name: 'Project 6',     url: '/proj6/index.html'     },
   { name: 'Final Project', url: '/projFinal/index.html' },
 ];
 
