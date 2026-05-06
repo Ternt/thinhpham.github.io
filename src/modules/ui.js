@@ -56,14 +56,14 @@ export default class UI {
     this.currentParent().appendChild(div);
   }
 
-  text({ text, id, classOverrides } = {}) {
-    this.textCount += 1;
-    const p = document.createElement('p');
-    p.id = id ?? `text-${this.textboxCount}`;
-    p.className = classOverrides ?? 'ui-element ui-text';
-    p.textContent = text;
-    this.currentParent().appendChild(p);
-    return p; // add this
+  text({ text, id, classOverrides, inline = false } = {}) {
+    this.textboxCount += 1;
+    const el = document.createElement(inline ? 'span' : 'p');
+    el.id = id ?? `text-${this.textboxCount}`;
+    el.className = classOverrides ?? 'ui-element ui-text';
+    el.textContent = text;
+    this.currentParent().appendChild(el);
+    return el;
   }
 
   link({ text, href, id, classOverrides } = {}) {

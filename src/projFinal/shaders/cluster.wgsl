@@ -18,12 +18,12 @@ struct Camera {
   screen_h   : f32,
 }
 
-@group(0) @binding(0) var<uniform>        camera   : Camera;
+@group(0) @binding(0) var<uniform> camera : Camera;
 @group(0) @binding(1) var<storage, read_write> clusters : array<ClusterBounds>;
 
 fn screen_to_view(screen: vec2f) -> vec3f {
   let ndc = vec2f(screen.x / camera.screen_w * 2.0 - 1.0,
-                  1.0 - screen.y / camera.screen_h * 2.0);
+    1.0 - screen.y / camera.screen_h * 2.0);
   let clip  = vec4f(ndc, -1.0, 1.0);
   let view  = camera.inv_proj * clip;
   return view.xyz / view.w;
@@ -48,7 +48,6 @@ fn cs(@builtin(global_invocation_id) gid: vec3u) {
   let near = camera.near;
   let far  = camera.far;
 
-  
   let z_near = -near * pow(far / near, f32(gid.z)       / f32(CLUSTER_Z));
   let z_far  = -near * pow(far / near, f32(gid.z + 1u)  / f32(CLUSTER_Z));
 

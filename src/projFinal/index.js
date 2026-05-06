@@ -44,16 +44,17 @@ class App {
       this.camera.aspect = window.innerWidth / window.innerHeight;
     };
 
-    const [vertSrc, fragSrc, clusterSrc, lightAssignSrc, debugSrc] = await Promise.all([
+    const [vertSrc, fragSrc, clusterSrc, lightAssignSrc, debugSrc, bloomSrc] = await Promise.all([
       fetch('./shaders/vert.wgsl').then(r => r.text()),
       fetch('./shaders/frag.wgsl').then(r => r.text()),
       fetch('./shaders/cluster.wgsl').then(r => r.text()),
       fetch('./shaders/light_assign.wgsl').then(r => r.text()),
       fetch('./shaders/collider_debug.wgsl').then(r => r.text()),
+      fetch('./shaders/bloom.wgsl').then(r => r.text()),
     ]);
 
     this._debugSrc = debugSrc;
-    this._shaders  = { vert: vertSrc, frag: fragSrc, cluster: clusterSrc, lightAssign: lightAssignSrc };
+    this._shaders  = { vert: vertSrc, frag: fragSrc, cluster: clusterSrc, lightAssign: lightAssignSrc, bloom: bloomSrc };
 
     this.renderer = new Renderer(this.wgpu, this._shaders);
     await this.renderer.init();
@@ -62,27 +63,19 @@ class App {
   }
 
   async _resetScene() {
-    if (this.physics) {
-      this.physics = null;
-    }
-
-    if (this.colliderDebug) {
-      this.colliderDebug.clear();
-    }
+    if (this.physics) this.physics = null;
+    if (this.colliderDebug) this.colliderDebug.clear();
 
     this.scene = new SceneGraph();
-
-    this.camera = new Camera('camera');
-    this.camera.transform.position = [0, 1.7, 0];
-
     this.player = new Player('player');
     this.player.transform.position = [0, 5, 5];
     this.scene.root.children.push(this.player);
     this.player.parent = this.scene.root;
+    this.camera = new Camera('camera');
+    this.camera.transform.position = [0, this.player.eyeHeight, 0];
 
     this.physics = await new Physics().init();
     this.player.physicsBody = this.physics.addKinematic(this.player);
-
     if (!this.colliderDebug) {
       const debugSrc = this._debugSrc;
       this.colliderDebug = new ColliderDebug(
@@ -92,21 +85,19 @@ class App {
       );
       await this.colliderDebug.init(debugSrc);
     }
-
     this._addPlayerDebug();
   }
 
   _addPlayerDebug() {
     this.playerDebugHandle = this.colliderDebug.addCollider(
-      _capsuleWireframe(0.9, 0.4),
-      new Float32Array(Transform.identity()),
+      _capsuleWireframe(this.player.capsuleHalfHeight, this.player.capsuleRadius),
+      Transform.identity(),
       [0.0, 0.5, 1.0],
       true,
     );
   }
 
   async loadModel(file) {
-
     const rootNode = await ModelLoader.fromFile(file);
     const meshNodes = Renderer.collectMeshNodes(rootNode);
     const total = meshNodes.reduce((s, n) => s + n.mesh.vertexCount, 0);
@@ -131,7 +122,6 @@ class App {
 
   _initFPS() {
     this._fpsEl = this.ui.text({ text: '-- fps', id: 'fps-counter' });
-
     this._fpsRing = new Float64Array(60);
     this._fpsHead = 0;
     this._fpsFull = false;
@@ -183,26 +173,45 @@ class App {
 const app = new App();
 await app.init();
 
+const DEBUG_MODES = [
+  { name: 'None',          value: 0 },
+  { name: 'Cluster Grid',  value: 1 },
+  { name: 'Light Heatmap', value: 2 },
+  { name: 'Z Slices',      value: 3 },
+];
+
+app.ui.parentPush({ id: 'debug-menu', classOverrides: 'app-params-menu' });
+  app.ui.parentPush({ classOverrides: 'app-preset-dropdown' });
+    app.ui.text({ text: 'Debug:' });
+    app.ui.dropdown({
+      options: DEBUG_MODES,
+      cb: (val) => {
+        app.renderer.setDebugMode(parseInt(val));
+      }
+    });
+  app.ui.parentPop();
+app.ui.parentPop();
+
 app.ui.parentPush({ id: 'app-project-title-root', classOverrides: 'app-project-title-root' });
   app.ui.textbox({
     text: "Clustered Forward Renderer",
     classOverrides: "app-project-title",
   });
   app.ui.parentPush({ id: 'app-credit-menu-root', classOverrides: 'app-credit-menu-root' });
-    app.ui.parentPush({ id: 'app-credit-menu', classOverrides: 'app-credit-menu' });
-      app.ui.text({
-        text: "The models used were from\u00A0",
-        classOverrides: "app-credit",
-      });
-      app.ui.link({
-        text: "https://thisisbranden.itch.io/spaceship-modules,",
-        href: "https://thisisbranden.itch.io/spaceship-modules",
-        classOverrides: "app-credit",
-      });
-    app.ui.parentPop();
     app.ui.text({
-      text: "with slight modifications in blender.",
+      text: "The models used were from\u00A0",
       classOverrides: "app-credit",
+      inline: true,
+    });
+    app.ui.link({
+      text: "https://thisisbranden.itch.io/spaceship-modules",
+      href: "https://thisisbranden.itch.io/spaceship-modules",
+      classOverrides: "app-credit app-credit-link",
+    });
+    app.ui.text({
+      text: ", with slight modifications in blender.",
+      classOverrides: "app-credit",
+      inline: true,
     });
   app.ui.parentPop();
 app.ui.parentPop();

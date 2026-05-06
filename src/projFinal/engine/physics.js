@@ -28,26 +28,27 @@ export default class Physics {
     return body;
   }
 
-
   addKinematic(gameObject) {
-    const pos  = gameObject.transform.position;
+    const pos = gameObject.transform.position;
 
-
-    const controller = this.world.createCharacterController(0.01); 
+    const controller = this.world.createCharacterController(0.01);
     controller.setApplyImpulsesToDynamicBodies(true);
     controller.setSlideEnabled(true);
     controller.setMaxSlopeClimbAngle(45 * Math.PI / 180);
     controller.setMinSlopeSlideAngle(30 * Math.PI / 180);
-    controller.enableAutostep(0.3, 0.1, true);  
+    controller.enableAutostep(0.3, 0.1, true);
     controller.enableSnapToGround(0.3);
 
     const bodyDesc = RAPIER.RigidBodyDesc.kinematicPositionBased()
     .setTranslation(pos[0], pos[1], pos[2]);
     const body = this.world.createRigidBody(bodyDesc);
 
-    const colliderDesc = RAPIER.ColliderDesc.capsule(0.9, 0.4);
-    const collider     = this.world.createCollider(colliderDesc, body);
+    // Read dimensions from the game object if available, fall back to defaults
+    const halfHeight = gameObject.capsuleHalfHeight ?? 0.9;
+    const radius     = gameObject.capsuleRadius     ?? 0.4;
 
+    const colliderDesc = RAPIER.ColliderDesc.capsule(halfHeight, radius);
+    const collider     = this.world.createCollider(colliderDesc, body);
 
     const handle = { body, controller, collider };
     this.bodies.set(gameObject, handle);
@@ -86,7 +87,6 @@ export default class Physics {
     this.world.createCollider(colliderDesc, body);
   }
 
-
   moveKinematic(gameObject, desiredTranslation, dt) {
     const handle = this.bodies.get(gameObject);
     if (!handle || !handle.controller) return;
@@ -98,10 +98,8 @@ export default class Physics {
       z: desiredTranslation[2],
     };
 
-
     controller.computeColliderMovement(collider, move);
     const corrected = controller.computedMovement();
-
 
     const current = body.translation();
     body.setNextKinematicTranslation({

@@ -172,7 +172,15 @@ a:hover {
   text-decoration: underline;
 }
 
+.app-params-menu {
+  display: flex;
+  flex-direction: column;
+  background: rgba(0, 0, 0, 0.6);
+  width: fit-content;
+}
+
 .app-project-title-root {
+  max-width: 34rem;
   position: fixed;
   bottom: 0;
   right: 0;
@@ -189,16 +197,10 @@ a:hover {
   box-sizing: border-box;
 }
 
-
 .app-credit-menu-root {
   padding: 0.2rem 0.6rem;
   background: rgba(0, 0, 0, 0.8);
   color: rgba(190, 190, 190, 1.0);
-}
-
-.app-credit-menu {
-  display: flex;
-  flex-direction: row;
 }
 
 .app-credit {
@@ -209,7 +211,7 @@ a:hover {
   color: rgba(190, 190, 190, 1.0);
 }
 
-.app-credit:hover {
+.app-credit-link:hover {
   color: #FF40FF;
 }
 

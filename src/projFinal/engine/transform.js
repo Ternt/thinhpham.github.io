@@ -6,12 +6,12 @@ export default class Transform {
   }
 
   static identity() {
-    return [
+    return new Float32Array([
       1, 0, 0, 0,
       0, 1, 0, 0,
       0, 0, 1, 0,
       0, 0, 0, 1,
-    ];
+    ]);
   }
 
   

@@ -1,17 +1,9 @@
+import Transform from './transform.js';
 import GameObject from './gameObject.js';
 import Mesh, { VertexInput } from './mesh.js';
 
-function identity() {
-  return new Float32Array([
-    1, 0, 0, 0, 
-    0, 1, 0, 0, 
-    0, 0, 1, 0, 
-    0, 0, 0, 1
-  ]);
-}
-
 function trs(translation, rotation, scale) {
-  const [x, y, z, w] = rotation   ?? [0, 0, 0, 1];
+  const [x, y, z, w] = rotation    ?? [0, 0, 0, 1];
   const [sx, sy, sz] = scale       ?? [1, 1, 1];
   const [tx, ty, tz] = translation ?? [0, 0, 0];
   const x2=x+x, y2=y+y, z2=z+z;
@@ -52,8 +44,11 @@ export default class ModelLoader {
 
   static async parseGLB(buffer) {
     const view = new DataView(buffer);
+
+    // check for GLB magic.
     if (view.getUint32(0, true) !== 0x46546C67) throw new Error('GLB: invalid magic.');
     if (view.getUint32(4, true) !== 2)          throw new Error('GLB: unsupported version.');
+
     let jsonChunk = null;
     let binChunk  = null;
     let offset    = 12;
@@ -135,10 +130,10 @@ export default class ModelLoader {
       let emissiveImage  = null;
 
       for (const prim of meshDef.primitives ?? []) {
-        const posArr = prim.attributes.POSITION  !== undefined ? await readAccessor(prim.attributes.POSITION)   : null;
-        const norArr = prim.attributes.NORMAL    !== undefined ? await readAccessor(prim.attributes.NORMAL)     : null;
+        const posArr = prim.attributes.POSITION   !== undefined ? await readAccessor(prim.attributes.POSITION)   : null;
+        const norArr = prim.attributes.NORMAL     !== undefined ? await readAccessor(prim.attributes.NORMAL)     : null;
         const uvArr  = prim.attributes.TEXCOORD_0 !== undefined ? await readAccessor(prim.attributes.TEXCOORD_0) : null;
-        const idxArr = prim.indices              !== undefined ? await readAccessor(prim.indices)               : null;
+        const idxArr = prim.indices               !== undefined ? await readAccessor(prim.indices)               : null;
 
         if (!posArr) continue;
 
@@ -191,29 +186,8 @@ export default class ModelLoader {
         obj.mesh = meshLookup[nodeDef.mesh];
       }
 
-      const instExt = nodeDef.extensions?.EXT_mesh_gpu_instancing;
-      if (instExt && nodeDef.mesh !== undefined) {
-        const attrs = instExt.attributes ?? {};
-        const count = gltf.accessors[Object.values(attrs)[0]]?.count ?? 0;
-
-        let translations = null, rotations = null, scales = null;
-        if (attrs.TRANSLATION !== undefined) translations = await readAccessor(attrs.TRANSLATION);
-        if (attrs.ROTATION    !== undefined) rotations    = await readAccessor(attrs.ROTATION);
-        if (attrs.SCALE       !== undefined) scales       = await readAccessor(attrs.SCALE);
-
-        const matrices = new Float32Array(count * 16);
-        for (let i = 0; i < count; i++) {
-          const t = translations ? [translations[i*3], translations[i*3+1], translations[i*3+2]] : [0,0,0];
-          const r = rotations    ? [rotations[i*4],    rotations[i*4+1],    rotations[i*4+2],    rotations[i*4+3]] : [0,0,0,1];
-          const s = scales       ? [scales[i*3],       scales[i*3+1],       scales[i*3+2]]       : [1,1,1];
-          matrices.set(trsFromComponents(t, r, s), i * 16);
-        }
-        obj.instanceMatrices = matrices;
-        obj.instanceCount    = count;
-      } else {
-        obj.instanceMatrices = new Float32Array([1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1]);
-        obj.instanceCount    = 1;
-      }
+      obj.instanceMatrices = Transform.identity();
+      obj.instanceCount    = 1;
 
       for (const childIdx of nodeDef.children ?? []) {
         obj.children.push(await buildNode(childIdx, obj));
@@ -231,8 +205,8 @@ export default class ModelLoader {
       root = rootNodes[0];
     } else {
       root = new GameObject('root');
-      root.localMatrix     = identity();
-      root.instanceMatrices = new Float32Array([1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1]);
+      root.localMatrix      = Transform.identity();
+      root.instanceMatrices = Transform.identity();
       root.instanceCount    = 1;
       for (const n of rootNodes) root.addChild(n);
     }

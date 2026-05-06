@@ -1,7 +1,7 @@
 import Camera from './camera.js';
+import Transform from './transform.js';
 
 export default class Renderer {
-
   static CLUSTER_X              = 16;
   static CLUSTER_Y              = 9;
   static CLUSTER_Z              = 24;
@@ -62,6 +62,14 @@ export default class Renderer {
     this.lightGridBuf = wgpu.createEmptyBuffer(TC * 8, GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST);
     this.lightsBuf    = wgpu.createEmptyBuffer(Renderer.MAX_LIGHTS * 48, GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST);
     this.lightCountBuf = wgpu.createEmptyBuffer(4, GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST);
+    this.debugModeBuf = wgpu.createEmptyBuffer(4, GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST);
+
+    // write 0 (no debug) by default
+    wgpu.writeBuffer(this.debugModeBuf, new Uint32Array([0]));
+  }
+
+  setDebugMode(mode) {
+    this.wgpu.writeBuffer(this.debugModeBuf, new Uint32Array([mode]));
   }
 
   setLights(lights) {
@@ -160,13 +168,15 @@ export default class Renderer {
 
     this.fragLightBGL = device.createBindGroupLayout({
       entries: [
-        { binding: 0, visibility: GPUShaderStage.FRAGMENT, buffer:  { type: 'uniform' } },
-        { binding: 1, visibility: GPUShaderStage.FRAGMENT, buffer:  { type: 'read-only-storage' } },
-        { binding: 2, visibility: GPUShaderStage.FRAGMENT, buffer:  { type: 'uniform' } },
-        { binding: 3, visibility: GPUShaderStage.FRAGMENT, buffer:  { type: 'read-only-storage' } },
-        { binding: 4, visibility: GPUShaderStage.FRAGMENT, buffer:  { type: 'read-only-storage' } },
+        { binding: 0, visibility: GPUShaderStage.FRAGMENT, buffer: { type: 'uniform' } },
+        { binding: 1, visibility: GPUShaderStage.FRAGMENT, buffer: { type: 'read-only-storage' } },
+        { binding: 2, visibility: GPUShaderStage.FRAGMENT, buffer: { type: 'uniform' } },
+        { binding: 3, visibility: GPUShaderStage.FRAGMENT, buffer: { type: 'read-only-storage' } },
+        { binding: 4, visibility: GPUShaderStage.FRAGMENT, buffer: { type: 'read-only-storage' } },
+        { binding: 5, visibility: GPUShaderStage.FRAGMENT, buffer: { type: 'uniform' } },
       ],
     });
+
     this.fragLightBG = device.createBindGroup({
       layout: this.fragLightBGL,
       entries: [
@@ -175,6 +185,7 @@ export default class Renderer {
         { binding: 2, resource: { buffer: this.lightCountBuf } },
         { binding: 3, resource: { buffer: this.lightGridBuf } },
         { binding: 4, resource: { buffer: this.lightListBuf } },
+        { binding: 5, resource: { buffer: this.debugModeBuf } },
       ],
     });
   }
@@ -269,7 +280,7 @@ export default class Renderer {
     this.uvBuf  = wgpu.createBuffer(uvAll,  GPUBufferUsage.STORAGE);
 
     this.uniformBufs = meshNodes.map(() =>
-      wgpu.createEmptyBuffer(208, GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST)
+      wgpu.createEmptyBuffer(224, GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST)
     );
 
     this.texFlagBufs = meshNodes.map(() =>
@@ -281,7 +292,7 @@ export default class Renderer {
     );
 
     this.instanceBufs = meshNodes.map((node) => {
-      const matrices = node.instanceMatrices ?? new Float32Array([1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1]);
+      const matrices = node.instanceMatrices ?? Transform.identity();
       return wgpu.createBuffer(matrices, GPUBufferUsage.STORAGE);
     });
 
@@ -306,26 +317,16 @@ export default class Renderer {
 
     this.bgl = device.createBindGroupLayout({
       entries: [
-        { binding: 0, visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
-                      buffer: { type: 'uniform' } },
-        { binding: 1, visibility: GPUShaderStage.VERTEX,
-                      buffer: { type: 'read-only-storage' } },
-        { binding: 2, visibility: GPUShaderStage.VERTEX,
-                      buffer: { type: 'read-only-storage' } },
-        { binding: 3, visibility: GPUShaderStage.VERTEX,
-                      buffer: { type: 'read-only-storage' } },
-        { binding: 4, visibility: GPUShaderStage.FRAGMENT,
-                      texture: { sampleType: 'float' } },
-        { binding: 5, visibility: GPUShaderStage.FRAGMENT,
-                      sampler: {} },
-        { binding: 6, visibility: GPUShaderStage.FRAGMENT,
-                      buffer: { type: 'uniform' } },
-        { binding: 7, visibility: GPUShaderStage.FRAGMENT,
-                      texture: { sampleType: 'float' } },
-        { binding: 8, visibility: GPUShaderStage.FRAGMENT,
-                      buffer: { type: 'uniform' } },
-        { binding: 9, visibility: GPUShaderStage.VERTEX,
-                      buffer: { type: 'read-only-storage' } },
+        { binding: 0, visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT, buffer: { type: 'uniform' } },
+        { binding: 1, visibility: GPUShaderStage.VERTEX, buffer: { type: 'read-only-storage' } },
+        { binding: 2, visibility: GPUShaderStage.VERTEX, buffer: { type: 'read-only-storage' } },
+        { binding: 3, visibility: GPUShaderStage.VERTEX, buffer: { type: 'read-only-storage' } },
+        { binding: 4, visibility: GPUShaderStage.FRAGMENT, texture: { sampleType: 'float' } },
+        { binding: 5, visibility: GPUShaderStage.FRAGMENT, sampler: {} },
+        { binding: 6, visibility: GPUShaderStage.FRAGMENT, buffer: { type: 'uniform' } },
+        { binding: 7, visibility: GPUShaderStage.FRAGMENT, texture: { sampleType: 'float' } },
+        { binding: 8, visibility: GPUShaderStage.FRAGMENT, buffer: { type: 'uniform' } },
+        { binding: 9, visibility: GPUShaderStage.VERTEX, buffer: { type: 'read-only-storage' } },
       ],
     });
 
@@ -359,9 +360,9 @@ export default class Renderer {
       layout: device.createPipelineLayout({
         bindGroupLayouts: [this.bgl, this.fragLightBGL],
       }),
-      vertex:   { module: vertModule, entryPoint: 'vs' },
+      vertex: { module: vertModule, entryPoint: 'vs' },
       fragment: {
-        module:     fragModule,
+        module: fragModule,
         entryPoint: 'fs',
         targets: [{
           format,
@@ -371,13 +372,13 @@ export default class Renderer {
           },
         }],
       },
-      primitive:    { topology: 'triangle-list', cullMode: 'back', frontFace: 'ccw' },
+      primitive: { topology: 'triangle-list', cullMode: 'back', frontFace: 'ccw' },
       depthStencil: { format: 'depth32float', depthWriteEnabled: true, depthCompare: 'less' },
     });
   }
 
   writeNodeUniform(uniformBuf, modelMatrix, emissiveFactor, camera, player) {
-    const data = new Float32Array(52);
+    const data = new Float32Array(56);
     data.set(modelMatrix,                         0);
     data.set(camera.viewMatrixFromPlayer(player), 16);
     data.set(camera.projectionMatrixF32(),        32);
@@ -407,13 +408,21 @@ export default class Renderer {
     const clusterPass = encoder.beginComputePass();
     clusterPass.setPipeline(this.clusterPipeline);
     clusterPass.setBindGroup(0, this.clusterBG);
-    clusterPass.dispatchWorkgroups(Renderer.CLUSTER_X, Renderer.CLUSTER_Y, Renderer.CLUSTER_Z);
+    clusterPass.dispatchWorkgroups(
+      Renderer.CLUSTER_X,
+      Renderer.CLUSTER_Y,
+      Renderer.CLUSTER_Z
+    );
     clusterPass.end();
 
     const assignPass = encoder.beginComputePass();
     assignPass.setPipeline(this.assignPipeline);
     assignPass.setBindGroup(0, this.assignBG);
-    assignPass.dispatchWorkgroups(Renderer.CLUSTER_X, Renderer.CLUSTER_Y, Renderer.CLUSTER_Z);
+    assignPass.dispatchWorkgroups(
+      Renderer.CLUSTER_X,
+      Renderer.CLUSTER_Y,
+      Renderer.CLUSTER_Z
+    );
     assignPass.end();
 
     const pass = encoder.beginRenderPass({

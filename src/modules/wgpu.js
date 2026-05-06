@@ -1,16 +1,4 @@
 
-/**
- * WGPU - raw WebGPU bootstrap and resource helpers.
- *
- * Owns:
- *   • adapter / device acquisition
- *   • canvas + GPUCanvasContext configuration
- *   • depth texture (created & recreated on resize)
- *   • generic buffer / texture / sampler factories
- *
- * Everything here is deliberately renderer-agnostic; no pipeline or
- * scene knowledge lives in this class.
- */
 export default class WGPU {
   constructor() {
     this.adapter       = null;
@@ -149,6 +137,16 @@ export default class WGPU {
     });
   }
 
+  createHDRTexture() {
+    return this.device.createTexture({
+      size:   [this.canvas.width, this.canvas.height],
+      format: 'rgba16float',
+      usage:  GPUTextureUsage.RENDER_ATTACHMENT |
+        GPUTextureUsage.TEXTURE_BINDING   |
+        GPUTextureUsage.STORAGE_BINDING,
+    });
+  }
+
   /**
    * Compile a WGSL source string into a GPUShaderModule.
    * @param {string} code
@@ -158,12 +156,10 @@ export default class WGPU {
     return this.device.createShaderModule({ code });
   }
 
-  /** Return the current swap-chain texture view. */
   currentTextureView() {
     return this.context.getCurrentTexture().createView();
   }
 
-  /** Return the depth texture view. */
   depthTextureView() {
     return this.depthTexture.createView();
   }

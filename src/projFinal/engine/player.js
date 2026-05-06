@@ -16,25 +16,28 @@ export default class Player extends GameObject {
     this.velZ        = 0;
 
     this.rate        = 6.0;    
-    this.mult        = 100.0;  
+    this.mult        = 6.0;  
     this.grav        = 30.0;   
     this.jumpVel     = 9.4375; 
 
-    this._bindInput();
+    this.capsuleHalfHeight = 1.3;
+    this.capsuleRadius     = 0.4;
+    this.eyeHeight         = 2.5;
+
+    this._addInput();
   }
 
-  _bindInput() {
+  _addInput() {
     window.addEventListener('keydown', (e) => { this.keys[e.code] = true;  });
     window.addEventListener('keyup',   (e) => { this.keys[e.code] = false; });
-
-    window.addEventListener('click', () => {
-      if (!this.isPointerLocked) document.body.requestPointerLock();
+    window.addEventListener('click', (e) => {
+      if (!this.isPointerLocked && !e.target.closest('#ui-container')) {
+        document.body.requestPointerLock();
+      }
     });
-
     document.addEventListener('pointerlockchange', () => {
       this.isPointerLocked = document.pointerLockElement === document.body;
     });
-
     window.addEventListener('mousemove', (e) => {
       if (!this.isPointerLocked) return;
       this.yaw   -= e.movementX * this.lookSpeed;
@@ -43,74 +46,68 @@ export default class Player extends GameObject {
     });
   }
 
-  update(dt, physics) {
-    const time = Math.min(dt, 0.05);
-    const rate = this.rate;
-    const drag = Math.exp(-time * rate);
-    const diff = 1.0 - drag;
+update(dt, physics) {
+  const handle     = physics.bodies.get(this);
+  const controller = handle?.controller;
+  const grounded   = controller ? controller.computedGrounded() : false;
+  const time       = Math.min(dt, 0.05);
+  const rate       = this.rate;
+  const drag       = Math.exp(-time * rate);
+  const diff       = 1.0 - drag;
 
-    
-    const yaw = this.yaw;
-    const cos = Math.cos(yaw);
-    const sin = Math.sin(yaw);
+  const yaw = this.yaw;
+  const cos = Math.cos(yaw);
+  const sin = Math.sin(yaw);
 
-    let dirX = 0, dirZ = 0;
-    if (this.keys['KeyW'] || this.keys['ArrowUp'])    dirZ -= 1;
-    if (this.keys['KeyS'] || this.keys['ArrowDown'])  dirZ += 1;
-    if (this.keys['KeyA'] || this.keys['ArrowLeft'])  dirX -= 1;
-    if (this.keys['KeyD'] || this.keys['ArrowRight']) dirX += 1;
+  let dirX = 0, dirZ = 0;
+  if (this.keys['KeyW'] || this.keys['ArrowUp'])    dirZ -= 1;
+  if (this.keys['KeyS'] || this.keys['ArrowDown'])  dirZ += 1;
+  if (this.keys['KeyA'] || this.keys['ArrowLeft'])  dirX -= 1;
+  if (this.keys['KeyD'] || this.keys['ArrowRight']) dirX += 1;
+  if (grounded && this.keys['ShiftLeft']) { this.mult = 30; this.rate = 15.0; }
+  else if (!this.keys['ShiftLeft'])       { this.mult = 60; this.rate = 6.0;  }
 
-    
-    const norm = dirX * dirX + dirZ * dirZ;
-    let accX = 0, accZ = 0;
-    if (norm > 0) {
-      const inv = 1.0 / Math.sqrt(norm);
-      
-      accX = this.mult * ( cos * dirX + sin * dirZ) * inv;
-      accZ = this.mult * (-sin * dirX + cos * dirZ) * inv;
+  const norm = dirX * dirX + dirZ * dirZ;
+  let accX = 0, accZ = 0;
+  if (norm > 0) {
+    const inv = 1.0 / Math.sqrt(norm);
+    accX = this.mult * ( cos * dirX + sin * dirZ) * inv;
+    accZ = this.mult * (-sin * dirX + cos * dirZ) * inv;
+  }
+
+  this.velX -= this.velX * diff;
+  this.velZ -= this.velZ * diff;
+  this.velX += diff * accX / rate;
+  this.velZ += diff * accZ / rate;
+
+  if (grounded && this.velY <= 0) {
+    this.velY = 0;
+    if (this.keys['Space']) {
+      this.velY = this.jumpVel;
     }
+  } else {
+    this.velY -= this.grav * time;
+    this.velY  = Math.max(this.velY, -40);
+  }
 
-    
-    this.velX -= this.velX * diff;
-    this.velZ -= this.velZ * diff;
-    this.velX += diff * accX / rate;
-    this.velZ += diff * accZ / rate;
+  const moveX = (time - diff / rate) * accX / rate + diff * this.velX / rate;
+  const moveZ = (time - diff / rate) * accZ / rate + diff * this.velZ / rate;
+  const moveY = this.velY * time;
 
-    if (physics && this.physicsBody) {
-      const handle     = physics.bodies.get(this);
-      const controller = handle?.controller;
-      const grounded   = controller ? controller.computedGrounded() : false;
+  physics.moveKinematic(this, [moveX, moveY, moveZ], time);
 
-      
-      if (grounded && this.velY <= 0) {
-        this.velY = 0;
-        
-        if (this.keys['Space']) {
-          this.velY = this.jumpVel;
-        }
-      } else {
-        this.velY -= this.grav * time;
-        this.velY  = Math.max(this.velY, -40); 
-      }
-
-      
-      const moveX = (time - diff / rate) * accX / rate + diff * this.velX / rate;
-      const moveZ = (time - diff / rate) * accZ / rate + diff * this.velZ / rate;
-      const moveY = this.velY * time;
-
-      physics.moveKinematic(this, [moveX, moveY, moveZ], time);
-
-      const t = physics.getTranslation(this);
-      if (t) this.transform.position = [t.x, t.y, t.z];
-
-    } else {
-      
-      const pos = this.transform.position;
-      this.transform.position = [
-        pos[0] + this.velX * time,
-        pos[1] + this.velY * time,
-        pos[2] + this.velZ * time,
-      ];
+  // Read back what the controller actually allowed
+  const corrected = handle?.controller?.computedMovement();
+  if (corrected && this.velY > 0) {
+    const expectedY  = moveY;
+    const correctedY = corrected.y;
+    // If the controller blocked most of the upward movement, we hit a ceiling
+    if (Math.abs(correctedY) < Math.abs(expectedY) * 0.1) {
+      this.velY = 0;
     }
   }
+
+  const t = physics.getTranslation(this);
+  if (t) this.transform.position = [t.x, t.y, t.z];
+}
 }
