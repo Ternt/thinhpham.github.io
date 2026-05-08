@@ -182,3 +182,8 @@ a:hover {
   font-family: 'Space Mono', monospace;
 }
 
+.ui-button--disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  pointer-events: none;
+}
